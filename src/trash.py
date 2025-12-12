@@ -1,5 +1,3 @@
 import pandas as pd
-df = pd.read_csv("data/processed/train_final.csv")
-print(train_df.head())
-print(train_df.describe())
-print(train_df.isna().sum())
+df = pd.read_csv("submissions/svm_submission.csv")
+print(df["object_id"].duplicated().sum())

@@ -38,7 +38,7 @@ def run():
     print("🔹 Saving submission.csv...")
     sub = pd.DataFrame({
         "object_id": df_test["object_id"],
-        "target": preds
+        "prediction": preds
     })
 
     os.makedirs("submissions", exist_ok=True)
