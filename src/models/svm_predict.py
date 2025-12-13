@@ -1,50 +1,42 @@
 import pandas as pd
-import numpy as np
 import joblib
 import os
+import numpy as np
 
-def load_test_data(path="data/processed/test_final.csv"):
-    return pd.read_csv(path)
-
-def load_artifacts(model_dir="models"):
-    model = joblib.load(f"{model_dir}/svm_model.pkl")
-    scaler = joblib.load(f"{model_dir}/svm_scaler.pkl")
-    features = joblib.load(f"{model_dir}/svm_features.pkl")
-    return model, scaler, features
-
-def preprocess_test(df, feature_cols):
-    # Giữ đúng thứ tự cột đã dùng khi train
-    X = df[feature_cols]
-
-    # Fill NaN nếu có (test thường có missing)
-    X = X.fillna(X.mean())
-
-    return X
+MODEL_DIR = "models"
+TEST_FINAL = "data/processed/test_final.csv"
+OUT = "submissions/svm_submission.csv"
 
 def run():
-    print("🔹 Loading artifacts...")
-    model, scaler, features = load_artifacts()
+    clf = joblib.load(os.path.join(MODEL_DIR,"svm_model.pkl"))
+    scaler = joblib.load(os.path.join(MODEL_DIR,"svm_scaler.pkl"))
+    feature_cols = joblib.load(os.path.join(MODEL_DIR,"svm_features.pkl"))
+    medians = joblib.load(os.path.join(MODEL_DIR,"svm_medians.pkl"))
 
-    print("🔹 Loading TEST data...")
-    df_test = load_test_data()
+    df = pd.read_csv(TEST_FINAL)
+    df["object_id"] = df["object_id"].astype(str).str.strip()
 
-    print("🔹 Preprocessing test...")
-    X_test = preprocess_test(df_test, features)
-    X_scaled = scaler.transform(X_test)
+    # ensure all features exist
+    for c in feature_cols:
+        if c not in df.columns:
+            df[c] = np.nan
 
-    print("🔹 Predicting...")
-    preds = model.predict(X_scaled)
+    X = df[feature_cols].fillna(medians)
+    X_scaled = scaler.transform(X)
 
-    print("🔹 Saving submission.csv...")
+    preds = clf.predict(X_scaled)
+
     sub = pd.DataFrame({
-        "object_id": df_test["object_id"],
+        "object_id": df["object_id"],
         "prediction": preds
     })
 
     os.makedirs("submissions", exist_ok=True)
-    sub.to_csv("submissions/svm_submission.csv", index=False)
+    sub.to_csv(OUT, index=False)
 
-    print("🎉 DONE! File saved at submissions/svm_submission.csv")
+    print("Saved:", OUT)
+    print("Rows:", len(sub), "Unique:", sub.object_id.nunique())
+    print(sub.prediction.value_counts())
 
 if __name__ == "__main__":
     run()

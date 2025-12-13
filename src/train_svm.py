@@ -88,5 +88,18 @@ def run(cv_folds=5):
 
     print("Saved model + artifacts to", MODEL_DIR)
 
+def train_svm(X, y):
+    model = SVC(
+        kernel="rbf",
+        C=3,
+        gamma="scale",
+        class_weight="balanced",  # 🔥 CỐT LÕI
+        probability=True,
+        random_state=42
+    )
+    model.fit(X, y)
+    return model
+
+
 if __name__ == "__main__":
     run()
