@@ -14,12 +14,17 @@ def run():
             parts = [combined]
         else:
             raise FileNotFoundError("No test feature files found. Run data_preprocessing first.")
+
     feats = pd.concat([pd.read_csv(p) for p in parts], ignore_index=True)
-    # normalize object_id
-    feats['object_id'] = feats['object_id'].astype(str).str.strip()
+
+    # 🔴 FIX CỐT LÕI Ở ĐÂY
+    feats["object_id"] = feats["object_id"].astype(str).str.strip()
+    feats = feats.drop_duplicates(subset="object_id", keep="first")
+
     os.makedirs("data/processed", exist_ok=True)
     feats.to_csv(OUT, index=False)
-    print(f"Saved {OUT} ({len(feats)} rows)")
+
+    print(f"Saved {OUT} ({len(feats)} rows, unique object_id={feats.object_id.nunique()})")
     return OUT
 
 if __name__ == "__main__":
