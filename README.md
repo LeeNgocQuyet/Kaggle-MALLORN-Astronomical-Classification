@@ -8,148 +8,64 @@ detecting Tidal Disruption Events (TDEs) from astronomical lightcurves.
 
 Task: Binary classification
 
-0: Non-TDE
+# Kaggle MALLORN — Astronomical Classification
 
-1: TDE
+Một pipeline ML đơn giản cho bài toán phân loại Tidal Disruption Events (TDE) trên Kaggle.
 
-Data: Astronomical lightcurves collected over ~10 years
+## Tổng quan
+- Bài toán: phân loại nhị phân (0 = Non-TDE, 1 = TDE)
+- Dữ liệu: lightcurves từ nhiều split (split_01 ... split_20)
+- Mô hình baseline: SVM
 
-Main challenges:
+## Bắt đầu nhanh (Quickstart)
+1. Tạo môi trường Python và cài phụ thuộc:
 
-Strong class imbalance
-
-Irregular time series
-
-Baseline model: Support Vector Machine (SVM)
-
-2. Repository Structure
-Kaggle-MALLORN-Astronomical-Classification/
-│
-├── data/
-│   ├── raw/                 # Kaggle original data (NOT tracked)
-│   └── processed/           # Generated feature tables
-│
-├── models/                  # Trained model artifacts
-│
-├── submissions/             # Kaggle submission files
-│
-├── src/
-│   ├── data_preprocessing.py    # Feature extraction from all splits
-│   ├── build_train_final.py     # Merge features + labels
-│   ├── train_svm.py             # Train SVM model
-│   ├── preprocess_test.py       # Build test_final.csv
-│   └── svm_predict.py           # Generate submission
-│
-├── notebooks/
-│   └── eda.ipynb                # Optional EDA
-│
-├── requirements.txt
-├── .gitignore
-└── README.md
-
-3. Installation
-
-Create a Python environment (recommended) and install dependencies:
-
+```bash
+python -m venv .venv
+# Windows (PowerShell)
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+```
 
-4. End-to-End Pipeline
-Step 1: Feature Extraction (All Splits)
+2. Chạy pipeline (các script nằm trong `src/`):
 
-Extract lightcurve-level features from raw CSV files:
-
+```bash
+# 1) Trích xuất đặc trưng
 python src/data_preprocessing.py
 
-
-Generated files:
-
-data/processed/train_features_all.csv
-
-data/processed/test_features_all.csv
-
-Step 2: Build Training Table
-
-Merge extracted features with training labels:
-
+# 2) Gộp features với nhãn
 python src/build_train_final.py
 
-
-Output:
-
-data/processed/train_final.csv
-
-Step 3: Train SVM Model
-
-Train an SVM with class balancing and cross-validation:
-
+# 3) Huấn luyện SVM
 python src/train_svm.py
 
-
-Saved artifacts:
-
-models/svm_model.pkl
-
-models/svm_scaler.pkl
-
-models/svm_features.pkl
-
-models/svm_medians.pkl
-
-Step 4: Preprocess Test Data
-
-Build final test table used for inference:
-
+# 4) Chuẩn hoá test và tạo bảng cuối
 python src/preprocess_test.py
 
-
-Output:
-
-data/processed/test_final.csv
-
-Step 5: Generate Kaggle Submission
-
-Generate submission file:
-
+# 5) Dự đoán và tạo file nộp
 python src/svm_predict.py
+```
 
+Output tiêu biểu:
+- `data/processed/train_final.csv`, `data/processed/test_final.csv`
+- `models/svm_model.pkl`, `models/svm_scaler.pkl`
+- `submissions/svm_submission.csv`
 
-Output:
+## Cấu trúc repository
 
-submissions/svm_submission.csv
+- `data/raw/` — (không lưu trong repo) chứa dữ liệu gốc theo từng `split_XX/`
+- `data/processed/` — bảng features và files đã xử lý
+- `src/` — script pipeline và xử lý
+- `models/` — artifacts huấn luyện
+- `notebooks/` — notebook khám phá dữ liệu
 
-Submission format:
+## Ghi chú
+- Không lưu dữ liệu raw trong repo; đặt file Kaggle dưới `data/raw/` theo cấu trúc split.
+- Có `CODE_OF_CONDUCT.md` để hướng dẫn đóng góp.
+- License: không có license trong repo theo yêu cầu.
 
-object_id,prediction
+## Muốn đóng góp?
+- Mở issue hoặc PR; tuân thủ `CODE_OF_CONDUCT.md`.
 
-5. Current Results
-
-Model: SVM (RBF kernel, class_weight=balanced)
-
-Public Kaggle score: ~0.13
-
-This score serves as a baseline.
-
-6. Notes on Reproducibility
-
-Raw Kaggle data is not included in this repository.
-
-Place Kaggle files under data/raw/ following the competition structure.
-
-The pipeline supports running from split_01 up to split_20.
-
-7. Planned Improvements
-
-Per-filter (u, g, r, i, z, y) feature extraction
-
-Time-domain features (slopes, variability, skewness)
-
-Gradient boosting models (XGBoost / LightGBM)
-
-Threshold optimization for imbalanced classification
-
-8. Author
-
+## Tác giả
 Quyết Lê Ngọc
-
-This repository is part of a machine learning project for astronomical
-event classification and Kaggle competition participation.

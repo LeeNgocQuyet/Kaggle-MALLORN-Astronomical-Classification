@@ -4,3 +4,7 @@ scikit-learn
 matplotlib
 seaborn
 jupyter
+
+# Optional / recommended
+joblib
+scipy
