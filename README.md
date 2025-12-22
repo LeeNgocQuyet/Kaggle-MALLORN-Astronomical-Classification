@@ -23,9 +23,23 @@ Project scaffold for the MALLORN Astronomical Classification challenge. This rep
 
 2. Edit `--base-path` when running scripts if your data is not in `data/raw`.
 
-3. Run training and prediction (example):
+3. Run training and prediction (examples):
 
-   python src/model_training.py --base-path data/raw --out submission_svm_improved.csv
+   - Run training (example CLI):
+
+     python src/train.py --base-path data/raw --exp exp07 --out-dir experiments/exp07
+
+   - Run inference / produce submission (example):
+
+     python src/predict.py --base-path data/raw --model models/exp07_model.joblib --out submissions/submission_exp07.csv
+
+Notes:
+- Default dataset path used in notebooks: `/kaggle/input/mallorn-dataset`. If you work locally, place raw CSVs under `data/raw/` with the same split_X folders or set `--base-path` accordingly.
+- If you run feature extraction for the first time, it's recommended to cache processed features into `data/processed/` to avoid reprocessing the 20 splits.
+
+Reproducing the notebook results:
+- Use `notebooks/20251223_exp07_svm-final-v6.ipynb` for the canonical experiment narrative. For reproducible runs, prefer the `src/` scripts above.
+
 
 ## Notes
 - The notebook is intended for reporting and exploration; prefer running `src/*` scripts for reproducibility and CI.
