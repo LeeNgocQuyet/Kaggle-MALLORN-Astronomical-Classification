@@ -1,63 +1,81 @@
 # MALLORN Astronomical Classification
 
-Project scaffold for the MALLORN Astronomical Classification challenge. This repository contains a cleaned notebook, reproducible scripts, and minimal documentation to run the baseline SVM pipeline described in the provided notebook.
-
 ## Overview
-- Extract per-object per-filter summary statistics (max, min, mean, std, amplitude) from raw lightcurve CSVs (split_01..split_20).
-- Merge these features with the event `*_log.csv` metadata.
-- Preprocess: scaling (StandardScaler) and class balancing with SMOTE.
-- Train an SVM (RBF) with GridSearchCV and produce submission CSV.
+This project targets the **MALLORN Astronomical Classification Challenge**, classifying astronomical objects (TDE vs. Non-TDE) based on their lightcurve data.
 
-## Files added
-- `notebooks/MALLORN_classification.ipynb` — cleaned notebook with outputs reset.
-- `src/data_processing.py` — functions to extract features and load splits.
-- `src/model_training.py` — end-to-end training and prediction script.
-- `src/utils.py` — small helpers for saving/loading models and submissions.
-- `requirements.txt` — Python dependencies.
-- `.gitignore`
+The solution implements a robust Machine Learning pipeline featuring:
+- **Feature Engineering**: Aggregated statistics and colors extracted from raw lightcurves.
+- **Data Augmentation**: SMOTE to handle class imbalance (TDEs are rare).
+- **Model Tuning**: SVM with RBF kernel and XGBoost, optimized via Grid/Randomized Search.
+- **Refinement**: Probability Calibration and Threshold Tuning to maximize F1-score.
 
-## Quickstart
-1. Create environment and install dependencies:
+## Methodology
 
-   pip install -r requirements.txt
+### 1. Feature Extraction
+We process raw lightcurves (Flux vs Time) for 6 filters (u, g, r, i, z, y) to extract:
+- **Statistics**: Max, Min, Mean, Std, Skewness, SNR.
+- **Colors**: Difference in Flux between bands (e.g., `g - r`).
+- **Amplitude**: Variability range per filter.
 
-2. Edit `--base-path` when running scripts if your data is not in `data/raw`.
+### 2. Preprocessing
+- **Imputation**: Median filling for missing values.
+- **Scaling**: `StandardScaler` (for SVM) and `RobustScaler` (for XGBoost).
+- **Imbalance Handling**: `SMOTE` (Synthetic Minority Over-sampling Technique) generates synthetic TDE samples during training to improve recall.
 
-3. Run training and prediction (examples):
+### 3. Models
+We focused on two primary architectures:
+1.  **SVM (Support Vector Machine)**:
+    -   Kernel: RBF (captures non-linearities).
+    -   Optimization: Tuned `C` and `gamma`.
+    -   **Calibration**: Applied Isotonic Calibration to refine probability estimates.
+2.  **XGBoost (Gradient Boosting)**:
+    -   Tree-based ensemble for feature importance analysis.
 
-   - Run training (example CLI):
+## Results
 
-     python src/train.py --base-path data/raw --exp exp07 --out-dir experiments/exp07
+**Best Model**: SVM (Calibrated + Threshold Tuned)
+- **Validation F1-Score**: **0.4590**
+- **Optimal Threshold**: **0.375**
 
-   - Run inference / produce submission (example):
+*Note: The F1 score reflects the challenging nature of the dataset and class imbalance. Calibration significantly improved reliability.*
 
-     python src/predict.py --base-path data/raw --model models/exp07_model.joblib --out submissions/submission_exp07.csv
+## Repository Structure
 
-Notes:
-- Default dataset path used in notebooks: `/kaggle/input/mallorn-dataset`. If you work locally, place raw CSVs under `data/raw/` with the same split_X folders or set `--base-path` accordingly.
-- If you run feature extraction for the first time, it's recommended to cache processed features into `data/processed/` to avoid reprocessing the 20 splits.
+```
+├── data/
+│   ├── raw/               # Raw splits and logs
+│   └── processed/         # (Optional) Cached features
+├── notebooks/
+│   ├── 01_svm_classification.ipynb      # Canonical SVM Pipeline
+│   └── 02_xgboost_classification.ipynb  # XGBoost Experiment
+├── src/
+│   ├── data_processing.py # Feature extraction logic
+│   ├── train.py           # Training script
+│   ├── predict.py         # Inference script
+│   └── utils.py           # Helpers
+├── experiments/           # Training artifacts (models, manifests)
+└── svm_submission.csv     # Final submission file
+```
 
-Reproducing the notebook results:
-- Use `notebooks/20251223_exp07_svm-final-v6.ipynb` for the canonical experiment narrative. For reproducible runs, prefer the `src/` scripts above.
+## Reproducibility
 
+### 1. Environment
+```bash
+pip install -r requirements.txt
+```
 
-## Notes
-- The notebook is intended for reporting and exploration; prefer running `src/*` scripts for reproducibility and CI.
-- After experiments, update this README with final metrics and a link to the model and submission.
+### 2. Training
+To retrain the best model (SVM):
+```bash
+python -m src.train --base-path data/raw --exp exp08_final
+```
+*Outputs model to `models/exp08_final_model.joblib` and metrics to `experiments/exp08_final/manifest.json`.*
 
-## Repository structure
+### 3. Inference
+To generate a submission using the trained model:
+```bash
+python -m src.predict --base-path data/raw --manifest experiments/exp08_final/manifest.json --out svm_submission.csv
+```
 
-- `notebooks/` : exploratory and report notebooks. Naming convention: `YYYYMMDD_exp-short-desc.ipynb` or `expNN_short-desc.ipynb`. Start new notebooks from `notebooks/template.ipynb` and include required metadata in the first markdown cell (Experiment ID, author, date, dataset base_path, brief description, related scripts).
-- `src/` : reusable scripts and CLI tools (`data_processing.py`, `model_training.py`, `utils.py`). Keep heavy processing in scripts and call them from notebooks with `!python`.
-- `data/raw/` : raw CSVs (split_01..split_20) and `train_log.csv` / `test_log.csv`.
-- `data/processed/` : cached features (parquet or csv) to speed runs; avoid committing large processed files.
-- `models/` : serialized models (name them `expID_model.joblib`) and companion metadata files describing params/metrics.
-- `experiments/` : one folder per experiment with `manifest.json`, `metrics.json`, plots and final `submission.csv`.
-- `reports/` : exported notebooks (HTML), figures and writeups.
-
-Guidelines:
-
-- Use `notebooks/template.ipynb` for new notebooks and include a short metadata block in the first markdown cell.
-- For long-running steps (feature extraction, hyperparameter search) implement and run via `src/` scripts; keep notebooks for explanation and plots.
-- Record experiment metadata in `experiments/expID/manifest.json` with keys `id`, `date`, `author`, `notebook`, `params`, `metrics`, `notes`.
-- When adding notebooks or changing conventions, update `docs/STRUCTURE.md` accordingly.
+## Authors
+- **[Your Name/Team]**
