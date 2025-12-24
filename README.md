@@ -116,10 +116,3 @@ python -m src.predict --base-path data/raw --manifest experiments/exp08_final/ma
 
 - Chạy `pytest` để kiểm tra các hàm xử lý dữ liệu và pipeline.
 
-## Ghi chú cho người chấm
-
-- Trong báo cáo, trình bày rõ: feature engineering, lựa chọn mô hình và lý do, tuning siêu tham số, các metric dùng để đánh giá (F1, Precision, Recall), và các nỗ lực cải tiến (calibration, threshold tuning, augmentation).
-
-## Tác giả
-
-- [Tên bạn / Nhóm]
